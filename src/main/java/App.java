@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class App extends Application {
+    final int WINDOW_SIZE = 10;
     private ScheduledExecutorService scheduledExecutorService;
 
     public static void main(String[] args) {
@@ -42,6 +43,7 @@ public class App extends Application {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Data Series");
 
+        // add series to chart
         lineChart.getData().add(series);
 
         // setup scene
@@ -51,14 +53,26 @@ public class App extends Application {
         // show the stage
         primaryStage.show();
 
-        // setup a thread to add new data to the chart
+        // this is used to display time in HH:mm:ss format
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
+
+        // setup a scheduled executor to periodically put data into the chart
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
+        // put dummy data onto graph per second
         scheduledExecutorService.scheduleAtFixedRate(() -> {
+            // get a random integer between 0-10
             Integer random = ThreadLocalRandom.current().nextInt(10);
+
+            // Update the chart
             Platform.runLater(() -> {
+                // get current time
                 Date now = new Date();
+                // put random number with current time
                 series.getData().add(new XYChart.Data<>(simpleDateFormat.format(now), random));
+
+                if (series.getData().size() > WINDOW_SIZE)
+                    series.getData().remove(0);
             });
         }, 0, 1, TimeUnit.SECONDS);
     }
